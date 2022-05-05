@@ -3,15 +3,16 @@ const {Server: HttpServer} = require('http');
 const {Server: Socket} = require('socket.io');
 const moment = require('moment');
 
-const ProductsApi = require('../api/products.js');
-const MessagesApi = require('../api/messages.js');
+const DatabaseApi = require('../api/database.js');
+
+const config = require('../config/config.js');
 
 const app = express();
 const httpServer = new HttpServer(app);
 const io = new Socket(httpServer);
 
-const products = new ProductsApi();
-const messages = new MessagesApi('./data/messages.json');
+const products = new DatabaseApi(config.mysql, 'products');
+const messages = new DatabaseApi(config.sqlite, 'messages');
 
 // Middlewares
 app.use(express.json());
@@ -23,12 +24,12 @@ const getAllProducts = (socket) => {
   socket.emit('list-products', products.getAll());
 };
 
-const getAllMessages = (socket) => {
-  messages.getAll().then(list => {
-    socket.emit('list-messages', JSON.parse(list));
-    getAllProducts(socket);
-  }).catch(e => console.log(e));
-};
+// const getAllMessages = (socket) => {
+//   messages.getAll().then(list => {
+//     socket.emit('list-messages', JSON.parse(list));
+//     getAllProducts(socket);
+//   }).catch(e => console.log(e));
+// };
 
 
 // Socket configuration
@@ -38,22 +39,22 @@ io.on('connection', async socket => {
 
   // Add product
   socket.on('add-product', product => {
-    products.createProduct(product);
+    products.create(product);
     socket.emit('list-products', products.getAll());
   });
 
   // List messages
-  getAllMessages(socket);
+  // getAllMessages(socket);
   // Add message
   socket.on('add-message', data => {
-    const message = {
-      ...data,
-      date: moment(new Date()).format('DD/MM/YYYY HH:MM:SS')
-    };
-    messages.save(message).then(response => {
-      getAllMessages(socket);
-      getAllProducts(socket);
-    }).catch(error => console.log(error));
+    // const message = {
+    //   ...data,
+    //   date: moment(new Date()).format('DD/MM/YYYY HH:MM:SS')
+    // };
+    // messages.save(message).then(response => {
+    //   getAllMessages(socket);
+    //   getAllProducts(socket);
+    // }).catch(error => console.log(error));
   });
 });
 
