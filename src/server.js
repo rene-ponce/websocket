@@ -21,15 +21,17 @@ app.use(express.static('public'));
 
 // Functions
 const getAllProducts = (socket) => {
-  socket.emit('list-products', products.getAll());
+  products.getAll().then(rows => {
+    socket.emit('list-products', rows);
+  });
 };
 
-// const getAllMessages = (socket) => {
-//   messages.getAll().then(list => {
-//     socket.emit('list-messages', JSON.parse(list));
-//     getAllProducts(socket);
-//   }).catch(e => console.log(e));
-// };
+const getAllMessages = (socket) => {
+  messages.getAll().then(list => {
+    socket.emit('list-messages', list);
+    getAllProducts(socket);
+  }).catch(e => console.log(e));
+};
 
 
 // Socket configuration
@@ -39,22 +41,23 @@ io.on('connection', async socket => {
 
   // Add product
   socket.on('add-product', product => {
-    products.create(product);
-    socket.emit('list-products', products.getAll());
+    products.create(product).then(response => {
+      getAllProducts(socket);
+    });
   });
 
   // List messages
-  // getAllMessages(socket);
+  getAllMessages(socket);
   // Add message
   socket.on('add-message', data => {
-    // const message = {
-    //   ...data,
-    //   date: moment(new Date()).format('DD/MM/YYYY HH:MM:SS')
-    // };
-    // messages.save(message).then(response => {
-    //   getAllMessages(socket);
-    //   getAllProducts(socket);
-    // }).catch(error => console.log(error));
+    const message = {
+      ...data,
+      date: moment(new Date()).format('DD/MM/YYYY HH:MM:SS')
+    };
+    messages.create(message).then(response => {
+      getAllMessages(socket);
+      getAllProducts(socket);
+    }).catch(error => console.log(error));
   });
 });
 

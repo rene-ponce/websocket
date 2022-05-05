@@ -1,7 +1,6 @@
 const socket = io.connect();
 
 socket.on('list-products', products => {
-  console.log(products);
   const t = tableProducts(products);
   t.then(r => {
     document.getElementById('productos').innerHTML = r;

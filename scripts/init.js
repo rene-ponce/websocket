@@ -19,7 +19,7 @@ sqliteDb.schema.createTable('messages', table => {
   table.increments('id');
   table.string('email');
   table.string('message');
-  table.timestamps('date');
+  table.string('date');
 })
   .then(() => console.log('Table messages created'))
   .catch((error) => { console.log(error); throw error })
